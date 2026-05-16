@@ -19,10 +19,10 @@ const POSITION_STORAGE = 'wedream.myPosition';
 const CATEGORIES = ['travel', 'home', 'adventure', 'career', 'family', 'other'];
 
 const SAMPLE_SEEDS = [
-    { seed: 'wedream-kyoto',  titleKey: 'sample_ex1_title', detailsKey: 'sample_ex1_details', category: 'travel',    owner: 'shared'  },
-    { seed: 'wedream-kitten', titleKey: 'sample_ex2_title', detailsKey: 'sample_ex2_details', category: 'home',      owner: 'me'      },
-    { seed: 'wedream-aurora', titleKey: 'sample_ex3_title', detailsKey: 'sample_ex3_details', category: 'adventure', owner: 'partner' },
-    { seed: 'wedream-cafe',   titleKey: 'sample_ex4_title', detailsKey: 'sample_ex4_details', category: 'career',    owner: 'shared'  },
+    { seed: 'wedream-kyoto',  image: 'samples/kyoto.jpg',  titleKey: 'sample_ex1_title', detailsKey: 'sample_ex1_details', category: 'travel',    owner: 'shared'  },
+    { seed: 'wedream-kitten', image: 'samples/kitten.jpg', titleKey: 'sample_ex2_title', detailsKey: 'sample_ex2_details', category: 'home',      owner: 'me'      },
+    { seed: 'wedream-aurora', image: 'samples/aurora.jpg', titleKey: 'sample_ex3_title', detailsKey: 'sample_ex3_details', category: 'adventure', owner: 'partner' },
+    { seed: 'wedream-cafe',   image: 'samples/cafe.jpg',   titleKey: 'sample_ex4_title', detailsKey: 'sample_ex4_details', category: 'career',    owner: 'shared'  },
 ];
 
 const state = {
@@ -190,8 +190,9 @@ async function seedExamples(coupleId) {
             detailsKey: seed.detailsKey,
             category: seed.category,
             owner: seed.owner === 'me' ? 'p1' : seed.owner === 'partner' ? 'p2' : 'shared',
-            imageUrl: `https://picsum.photos/seed/${seed.seed}/800/500`,
-            imageStatus: 'fallback',
+            // Use absolute URL so it works no matter what hash/path the user has
+            imageUrl: new URL(seed.image, location.href).href,
+            imageStatus: 'done',
             isSample: true,
             createdAt: now - (SAMPLE_SEEDS.length - i) * 1000,
         });
@@ -392,7 +393,7 @@ function renderSamples() {
         return `
             <article class="dream-card sample ${ownerCls}">
                 <div class="dream-image">
-                    <img src="https://picsum.photos/seed/${encodeURIComponent(d.seed)}/600/375" alt="" loading="lazy">
+                    <img src="${escapeHtml(d.image)}" alt="" loading="lazy">
                 </div>
                 <div class="dream-body">
                     <div class="dream-meta">
