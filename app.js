@@ -1,12 +1,38 @@
-const STORAGE_KEY = 'wedream.v2';
+import { auth, authReady, generateDreamImage } from './firebase.js';
+
+const STORAGE_KEY = 'wedream.v3';
 
 const CATEGORIES = ['travel', 'home', 'adventure', 'career', 'family', 'other'];
 
-const SAMPLE_DREAMS = [
-    { titleKey: 'sample_ex1_title', detailsKey: 'sample_ex1_details', category: 'travel', ownerType: 'shared' },
-    { titleKey: 'sample_ex2_title', detailsKey: 'sample_ex2_details', category: 'home', ownerType: 'me' },
-    { titleKey: 'sample_ex3_title', detailsKey: 'sample_ex3_details', category: 'adventure', ownerType: 'partner' },
-    { titleKey: 'sample_ex4_title', detailsKey: 'sample_ex4_details', category: 'career', ownerType: 'shared' },
+const SAMPLE_SEEDS = [
+    {
+        seed: 'wedream-kyoto',
+        titleKey: 'sample_ex1_title',
+        detailsKey: 'sample_ex1_details',
+        category: 'travel',
+        owner: 'shared',
+    },
+    {
+        seed: 'wedream-kitten',
+        titleKey: 'sample_ex2_title',
+        detailsKey: 'sample_ex2_details',
+        category: 'home',
+        owner: 'me',
+    },
+    {
+        seed: 'wedream-aurora',
+        titleKey: 'sample_ex3_title',
+        detailsKey: 'sample_ex3_details',
+        category: 'adventure',
+        owner: 'partner',
+    },
+    {
+        seed: 'wedream-cafe',
+        titleKey: 'sample_ex4_title',
+        detailsKey: 'sample_ex4_details',
+        category: 'career',
+        owner: 'shared',
+    },
 ];
 
 const state = {
@@ -32,9 +58,15 @@ function escapeHtml(s) {
         .replace(/'/g, '&#039;');
 }
 
+function dreamTitle(d) { return d.titleKey ? t(d.titleKey) : d.title; }
+function dreamDetails(d) { return d.detailsKey ? t(d.detailsKey) : d.details; }
+
 // ---------- Storage ----------
 function load() {
-    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('wedream.v1') || localStorage.getItem('ourdreams.v1');
+    const raw = localStorage.getItem(STORAGE_KEY)
+        || localStorage.getItem('wedream.v2')
+        || localStorage.getItem('wedream.v1')
+        || localStorage.getItem('ourdreams.v1');
     if (!raw) return false;
     try {
         const data = JSON.parse(raw);
@@ -73,16 +105,36 @@ function spawnSakura(count = 24) {
     }
 }
 
-// ---------- Sample dreams (welcome screen) ----------
+// ---------- Sample seeding ----------
+function seedExamplesIfEmpty() {
+    if (state.dreams.length > 0) return;
+    const now = Date.now();
+    SAMPLE_SEEDS.forEach((seed, i) => {
+        state.dreams.push({
+            id: `sample-${seed.seed}`,
+            titleKey: seed.titleKey,
+            detailsKey: seed.detailsKey,
+            category: seed.category,
+            owner: seed.owner,
+            imageUrl: `https://picsum.photos/seed/${encodeURIComponent(seed.seed)}/800/500`,
+            imageStatus: 'done',
+            isSample: true,
+            createdAt: now - (SAMPLE_SEEDS.length - i) * 1000,
+        });
+    });
+    save();
+}
+
+// ---------- Sample-set on setup screen ----------
 function renderSamples() {
     const container = $('sample-dreams');
     if (!container) return;
-    container.innerHTML = SAMPLE_DREAMS.map(d => {
-        const ownerText = d.ownerType === 'me' ? t('owner_mine')
-                        : d.ownerType === 'partner' ? t('owner_theirs')
+    container.innerHTML = SAMPLE_SEEDS.map(d => {
+        const ownerText = d.owner === 'me' ? t('owner_mine')
+                        : d.owner === 'partner' ? t('owner_theirs')
                         : t('owner_shared');
-        const ownerCls = d.ownerType === 'me' ? 'owner-me'
-                      : d.ownerType === 'partner' ? 'owner-partner'
+        const ownerCls = d.owner === 'me' ? 'owner-me'
+                      : d.owner === 'partner' ? 'owner-partner'
                       : 'owner-shared';
         return `
             <article class="dream-card sample ${ownerCls}">
@@ -106,6 +158,7 @@ function startSetup() {
         return;
     }
     state.me = me;
+    seedExamplesIfEmpty();
     save();
     enterApp();
 }
@@ -129,7 +182,7 @@ function populateCategorySelect() {
 }
 
 function ownerLabel(owner) {
-    if (owner === 'me') return state.me;
+    if (owner === 'me') return state.me || t('owner_mine');
     if (owner === 'partner') return t('owner_theirs');
     return t('owner_shared');
 }
@@ -146,6 +199,16 @@ function filteredDreams() {
     return state.dreams.filter(d => d.owner === map[state.activeTab]);
 }
 
+function dreamImageBlock(d) {
+    if (d.imageStatus === 'pending' && !d.imageUrl) {
+        return `<div class="dream-image pending"><div class="spinner small"></div><span>${escapeHtml(t('image_generating'))}</span></div>`;
+    }
+    if (d.imageUrl) {
+        return `<div class="dream-image"><img src="${escapeHtml(d.imageUrl)}" alt="" loading="lazy"></div>`;
+    }
+    return '';
+}
+
 function render() {
     const list = $('dreams-list');
     if (!list) return;
@@ -160,15 +223,18 @@ function render() {
         .sort((a, b) => b.createdAt - a.createdAt)
         .map(d => `
             <article class="dream-card ${ownerClass(d.owner)}">
-                <div class="dream-meta">
-                    <span class="dream-tag">${escapeHtml(t('cat_' + d.category))}</span>
-                    <span>${escapeHtml(ownerLabel(d.owner))}</span>
-                </div>
-                <h3 class="dream-title">${escapeHtml(d.title)}</h3>
-                ${d.details ? `<p class="dream-details">${escapeHtml(d.details)}</p>` : ''}
-                <div class="dream-actions">
-                    <button data-action="edit" data-id="${d.id}">${escapeHtml(t('edit'))}</button>
-                    <button data-action="delete" data-id="${d.id}">${escapeHtml(t('delete'))}</button>
+                ${dreamImageBlock(d)}
+                <div class="dream-body">
+                    <div class="dream-meta">
+                        <span class="dream-tag">${escapeHtml(t('cat_' + d.category))}</span>
+                        <span>${escapeHtml(ownerLabel(d.owner))}</span>
+                    </div>
+                    <h3 class="dream-title">${escapeHtml(dreamTitle(d))}</h3>
+                    ${dreamDetails(d) ? `<p class="dream-details">${escapeHtml(dreamDetails(d))}</p>` : ''}
+                    <div class="dream-actions">
+                        <button data-action="edit" data-id="${d.id}">${escapeHtml(t('edit'))}</button>
+                        <button data-action="delete" data-id="${d.id}">${escapeHtml(t('delete'))}</button>
+                    </div>
                 </div>
             </article>
         `).join('');
@@ -178,8 +244,8 @@ function render() {
 function openModal(dream = null) {
     state.editingId = dream ? dream.id : null;
     $('modal-title').textContent = t(dream ? 'edit_dream' : 'new_dream');
-    $('dream-title').value = dream ? dream.title : '';
-    $('dream-details').value = dream ? (dream.details || '') : '';
+    $('dream-title').value = dream ? dreamTitle(dream) : '';
+    $('dream-details').value = dream ? (dreamDetails(dream) || '') : '';
     populateCategorySelect();
     $('dream-category').value = dream ? dream.category : 'travel';
     $('dream-owner').value = dream ? dream.owner : 'me';
@@ -204,19 +270,44 @@ function saveDream() {
         category: $('dream-category').value,
         owner: $('dream-owner').value,
     };
+    let dreamId;
+    let needsImage = false;
     if (state.editingId) {
         const idx = state.dreams.findIndex(d => d.id === state.editingId);
-        if (idx >= 0) state.dreams[idx] = { ...state.dreams[idx], ...data };
+        if (idx >= 0) {
+            const existing = state.dreams[idx];
+            const oldTitle = dreamTitle(existing);
+            const oldDetails = dreamDetails(existing) || '';
+            const titleChanged = oldTitle !== title || oldDetails !== data.details;
+            state.dreams[idx] = {
+                ...existing,
+                ...data,
+                titleKey: null,
+                detailsKey: null,
+                isSample: false,
+            };
+            if (titleChanged) {
+                state.dreams[idx].imageUrl = null;
+                state.dreams[idx].imageStatus = 'pending';
+                needsImage = true;
+            }
+            dreamId = state.editingId;
+        }
     } else {
+        dreamId = crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
         state.dreams.push({
-            id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+            id: dreamId,
             ...data,
+            imageUrl: null,
+            imageStatus: 'pending',
             createdAt: Date.now(),
         });
+        needsImage = true;
     }
     save();
     closeModal();
     render();
+    if (needsImage && dreamId) generateImageFor(dreamId);
 }
 
 function deleteDream(id) {
@@ -224,6 +315,39 @@ function deleteDream(id) {
     state.dreams = state.dreams.filter(d => d.id !== id);
     save();
     render();
+}
+
+// ---------- Image generation ----------
+async function generateImageFor(dreamId) {
+    const dream = state.dreams.find(d => d.id === dreamId);
+    if (!dream) return;
+    try {
+        await authReady;
+        const result = await generateDreamImage({
+            title: dream.title,
+            details: dream.details || '',
+            category: dream.category,
+        });
+        const url = result?.data?.imageUrl;
+        if (!url) throw new Error('No imageUrl');
+        const idx = state.dreams.findIndex(d => d.id === dreamId);
+        if (idx >= 0) {
+            state.dreams[idx].imageUrl = url;
+            state.dreams[idx].imageStatus = 'done';
+            save();
+            render();
+        }
+    } catch (e) {
+        console.error('Image generation failed:', e);
+        const idx = state.dreams.findIndex(d => d.id === dreamId);
+        if (idx >= 0) {
+            const seed = encodeURIComponent((state.dreams[idx].title || 'dream') + '-' + state.dreams[idx].category);
+            state.dreams[idx].imageUrl = `https://picsum.photos/seed/${seed}/800/500`;
+            state.dreams[idx].imageStatus = 'fallback';
+            save();
+            render();
+        }
+    }
 }
 
 // ---------- i18n hook ----------
@@ -242,7 +366,7 @@ function attachListeners() {
     });
 
     $('setup-start').addEventListener('click', startSetup);
-    $('setup-partner').addEventListener('keydown', e => {
+    $('setup-me').addEventListener('keydown', e => {
         if (e.key === 'Enter') startSetup();
     });
 
@@ -295,3 +419,6 @@ if (load()) {
 } else {
     show('setup-screen');
 }
+
+// Kick off anon sign-in in the background so it's ready when needed.
+authReady.catch(e => console.error('Auth init failed:', e));

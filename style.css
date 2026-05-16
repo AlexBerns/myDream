@@ -379,11 +379,54 @@ button { cursor: pointer; font-family: inherit; border: none; font-weight: 600; 
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     border-radius: 18px;
-    padding: 16px;
     box-shadow: var(--shadow);
     border-left: 5px solid var(--pink);
     border-top: 2px solid rgba(255, 255, 255, 0.6);
     animation: fadeIn 0.3s ease-out;
+    overflow: hidden;
+}
+.dream-card .dream-body { padding: 16px; }
+.dream-card.sample, .dream-card:not(:has(.dream-image)) { padding: 16px; }
+.dream-card.sample .dream-body, .dream-card:not(:has(.dream-image)) .dream-body { padding: 0; }
+
+.dream-image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    background: linear-gradient(135deg, var(--pink-soft) 0%, var(--lavender-soft) 100%);
+    overflow: hidden;
+}
+.dream-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    animation: imageFadeIn 0.6s ease-out;
+}
+@keyframes imageFadeIn {
+    from { opacity: 0; filter: blur(8px); }
+    to { opacity: 1; filter: blur(0); }
+}
+.dream-image.pending {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--text-soft);
+    font-size: 13px;
+    font-weight: 600;
+}
+.dream-image.pending::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+    animation: shimmer 1.6s linear infinite;
+}
+@keyframes shimmer {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
 }
 .dream-card.owner-partner { border-left-color: var(--lavender); }
 .dream-card.owner-shared {

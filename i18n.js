@@ -35,6 +35,7 @@ const TRANSLATIONS = {
         edit: 'Edit',
         delete: 'Delete',
         confirm_delete: 'Delete this dream?',
+        image_generating: 'Painting a little dream…',
 
         // Categories
         cat_travel: '✈ Travel',
@@ -91,6 +92,7 @@ const TRANSLATIONS = {
         edit: '編集',
         delete: '削除',
         confirm_delete: 'この夢を削除しますか？',
+        image_generating: '小さな夢を描いています…',
 
         // Categories
         cat_travel: '✈ 旅行',
