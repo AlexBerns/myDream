@@ -5,13 +5,12 @@ import {
 } from './firebase.js';
 
 // ===========================================================================
-// HARDCODED GEMINI API KEY
-// WARNING: This file is public on GitHub Pages. Restrict the key in Google
-// Cloud Console (HTTP referrers + API restrictions) so it only works from
-// your domains. See README for instructions.
+// IMAGE GENERATION: Pollinations.ai (free, no API key, no quota)
+// HF didn't work — token lacked Inference Providers permission, and HF's
+// free tier is limited to ~$0.10/month credits anyway. Pollinations is truly
+// free and unlimited. Returns images directly when an image URL is fetched.
 // ===========================================================================
-const GEMINI_API_KEY = 'AIzaSyDYz41QfHrwXW740w67i31c_DTZil_td5c';
-const GEMINI_MODEL = 'gemini-2.5-flash-image';
+const POLLINATIONS_MODEL = 'flux-anime';
 
 const COUPLE_ID_STORAGE = 'wedream.coupleId';
 const NAME_STORAGE = 'wedream.myName';
@@ -67,69 +66,60 @@ function shareUrl() {
     return `${location.origin}${location.pathname}?couple=${state.coupleId}`;
 }
 
-// ---------- Gemini ----------
+// ---------- Pollinations image generation ----------
 function buildPrompt(title, details, category) {
     const themeHint = {
-        travel: 'travel destination, scenery',
+        travel: 'scenic travel destination',
         home: 'cozy home interior',
-        adventure: 'outdoor adventure scene',
-        career: 'workplace or craft scene',
+        adventure: 'outdoor adventure',
+        career: 'workplace craft',
         family: 'warm family moment',
         other: 'whimsical scene',
     }[category] || 'romantic scene';
-
-    let prompt = `Create a dreamy, soft pastel anime illustration in 90s shoujo manga style depicting the following scene:\n\n`;
-    prompt += `MAIN SUBJECT: ${title}\n`;
-    if (details && details.trim()) {
-        prompt += `EXTRA DETAIL: ${details}\n`;
-    }
-    prompt += `CATEGORY: ${themeHint}\n\n`;
-    prompt += `Visual style: cherry blossom palette (soft pinks, lavender, cream), watercolor textures, ethereal lighting, soft glow, romantic atmosphere, 90s shoujo anime aesthetic. The image should clearly visualize the MAIN SUBJECT above. Do NOT include any text, letters, words, or written characters anywhere in the image.`;
+    let prompt = `${title}`;
+    if (details && details.trim()) prompt += `, ${details}`;
+    prompt += `, ${themeHint}, soft pastel 90s shoujo anime art style, cherry blossom palette, watercolor, ethereal lighting, soft glow, romantic, no text`;
     return prompt;
 }
 
-async function callGeminiImage(prompt) {
-    console.log('[Gemini] Sending prompt:\n', prompt);
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { responseModalities: ['IMAGE', 'TEXT'] },
-        }),
+function buildPollinationsUrl(prompt) {
+    const seed = Math.floor(Math.random() * 1000000);
+    const params = new URLSearchParams({
+        model: POLLINATIONS_MODEL,
+        width: '800',
+        height: '500',
+        nologo: 'true',
+        seed: String(seed),
+        enhance: 'true',
     });
-    if (!res.ok) {
-        const body = await res.text();
-        console.error('[Gemini] HTTP error', res.status, body);
-        throw new Error(`Gemini ${res.status}: ${body.slice(0, 240)}`);
-    }
-    const data = await res.json();
-    const parts = (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
-    const imagePart = parts.find(p => p.inlineData && p.inlineData.data);
-    if (!imagePart) {
-        console.error('[Gemini] No image in response. Full response:', data);
-        const finishReason = data?.candidates?.[0]?.finishReason;
-        throw new Error(`Gemini returned no image (finishReason: ${finishReason || 'unknown'})`);
-    }
-    console.log('[Gemini] ✓ Image received');
-    const mime = imagePart.inlineData.mimeType || 'image/png';
-    return `data:${mime};base64,${imagePart.inlineData.data}`;
+    return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?${params}`;
+}
+
+function preloadImage(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(url);
+        img.onerror = () => reject(new Error('Image failed to load'));
+        img.src = url;
+    });
 }
 
 async function generateImageFor(dreamId, dreamSnapshot) {
     const dream = dreamSnapshot || state.dreams.find(d => d.id === dreamId);
     if (!dream || !state.coupleId) return;
     const dreamRef = doc(db, 'couples', state.coupleId, 'dreams', dreamId);
+    const prompt = buildPrompt(dream.title, dream.details || '', dream.category);
+    const url = buildPollinationsUrl(prompt);
+    console.log('[Pollinations] Generating:', prompt);
+    console.log('[Pollinations] URL:', url);
     try {
-        const prompt = buildPrompt(dream.title, dream.details || '', dream.category);
-        const dataUrl = await callGeminiImage(prompt);
-        await updateDoc(dreamRef, { imageUrl: dataUrl, imageStatus: 'done' });
-        console.log('[Gemini] ✓ Image saved for "' + dream.title + '"');
+        // Preload so the shimmer stays until the image is actually ready
+        await preloadImage(url);
+        await updateDoc(dreamRef, { imageUrl: url, imageStatus: 'done' });
+        console.log('[Pollinations] ✓ Image ready for "' + dream.title + '"');
     } catch (e) {
-        console.error('[Gemini] Failed for "' + dream.title + '":', e.message);
+        console.error('[Pollinations] Failed for "' + dream.title + '":', e.message);
         showToast(t('image_gen_failed') + ': ' + (e.message || 'unknown'));
-        // Picsum fallback so user still sees something
         const seed = encodeURIComponent((dream.title || 'dream') + '-' + dream.category);
         await updateDoc(dreamRef, {
             imageUrl: `https://picsum.photos/seed/${seed}/800/500`,
