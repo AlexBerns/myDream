@@ -192,17 +192,24 @@ async function joinExistingCouple(coupleId, myName) {
 async function seedExamples(coupleId) {
     const now = Date.now();
     const dreamsCol = collection(db, 'couples', coupleId, 'dreams');
-    const writes = SAMPLE_SEEDS.map((seed, i) => addDoc(dreamsCol, {
-        titleKey: seed.titleKey,
-        detailsKey: seed.detailsKey,
-        category: seed.category,
-        owner: seed.owner === 'me' ? 'p1' : seed.owner === 'partner' ? 'p2' : 'shared',
-        imageUrl: `https://picsum.photos/seed/${seed.seed}/800/500`,
-        imageStatus: 'done',
-        isSample: true,
-        createdAt: now - (SAMPLE_SEEDS.length - i) * 1000,
-    }));
-    await Promise.all(writes);
+    // Create samples with Picsum first (instant), then Gemini regenerates async
+    for (let i = 0; i < SAMPLE_SEEDS.length; i++) {
+        const seed = SAMPLE_SEEDS[i];
+        const docRef = await addDoc(dreamsCol, {
+            titleKey: seed.titleKey,
+            detailsKey: seed.detailsKey,
+            category: seed.category,
+            owner: seed.owner === 'me' ? 'p1' : seed.owner === 'partner' ? 'p2' : 'shared',
+            imageUrl: `https://picsum.photos/seed/${seed.seed}/800/500`,
+            imageStatus: 'fallback',
+            isSample: true,
+            createdAt: now - (SAMPLE_SEEDS.length - i) * 1000,
+        });
+        // Upgrade to Gemini-generated image in the background (always EN for samples)
+        const enTitle = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS.en[seed.titleKey]) || seed.titleKey;
+        const enDetails = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS.en[seed.detailsKey]) || '';
+        generateImageFor(docRef.id, { title: enTitle, details: enDetails, category: seed.category });
+    }
 }
 
 function connectToCouple(coupleId) {
@@ -494,6 +501,7 @@ function render() {
                 <h3 class="dream-title">${escapeHtml(dreamTitle(d))}</h3>
                 ${dreamDetails(d) ? `<p class="dream-details">${escapeHtml(dreamDetails(d))}</p>` : ''}
                 <div class="dream-actions">
+                    <button data-action="regen" data-id="${d.id}" title="${escapeHtml(t('regen_image'))}">↻</button>
                     <button data-action="edit" data-id="${d.id}">${escapeHtml(t('edit'))}</button>
                     <button data-action="delete" data-id="${d.id}">${escapeHtml(t('delete'))}</button>
                 </div>
@@ -595,6 +603,23 @@ async function saveDream() {
     }
 }
 
+async function regenerateImage(dreamId) {
+    const dream = state.dreams.find(d => d.id === dreamId);
+    if (!dream || !state.coupleId) return;
+    // Mark pending so the shimmer shows
+    await updateDoc(doc(db, 'couples', state.coupleId, 'dreams', dreamId), {
+        imageStatus: 'pending',
+    });
+    // Use EN translation for samples, otherwise the literal title
+    let title = dream.title;
+    let details = dream.details || '';
+    if (dream.isSample && typeof TRANSLATIONS !== 'undefined') {
+        title = TRANSLATIONS.en[dream.titleKey] || title;
+        details = TRANSLATIONS.en[dream.detailsKey] || details;
+    }
+    generateImageFor(dreamId, { title, details, category: dream.category });
+}
+
 async function deleteDream(id) {
     if (!confirm(t('confirm_delete'))) return;
     try {
@@ -650,6 +675,9 @@ function attachListeners() {
         if (btn.dataset.action === 'edit') {
             const dream = state.dreams.find(d => d.id === id);
             if (dream) openModal(dream);
+        }
+        if (btn.dataset.action === 'regen') {
+            regenerateImage(id);
         }
     });
 
