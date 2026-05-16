@@ -1,91 +1,87 @@
 # weDream ♥
 
-A little webapp for couples to share their dreams with each other — works on phones and laptops, available in English and Japanese, with real-time sync between partners powered by Firebase.
+> A little webapp for couples to share their dreams with each other — illustrated with AI, synced between phones, in English and Japanese.
+>
+> ふたりだけの夢のおきば。書いた夢にAIが絵をつけてくれて、相手の端末ともリアルタイムで共有できる小さなウェブアプリです。日本語と英語に対応しています。
 
-**Live site:** https://alexberns.github.io/myDream/
+**Live site / ライブサイト:** https://alexberns.github.io/myDream/
 
 ---
 
-## What it does
+## ✨ Features / 機能
 
-- **Sign up** with email + password
-- **Pair with your partner**: one of you creates a couple space (gets an invite code), the other joins with that code
-- **Add dreams** with a title, details, category, and whose dream it is (mine / theirs / shared)
-- **Real-time sync**: when one partner adds or edits a dream, the other sees it within a second — no refresh
-- **Browse** all dreams or filter by Mine / Theirs / Shared
-- **Edit and delete** dreams (your own or shared ones)
-- **Bilingual** — full EN / 日本語, auto-detected from browser language, switchable anytime
+- **Pair via QR code** — one taps to create, the other scans to join. No email, no password. / QRコードでペアリング — メールもパスワードも不要。
+- **AI-illustrated dreams** — every dream gets a soft pastel anime image via Pollinations.ai (free, unlimited). / すべての夢にパステル調アニメ風の画像をAIで生成（Pollinations.ai、無料・無制限）。
+- **Real-time sync** between partners via Firebase Firestore. / Firebaseでパートナーとリアルタイム同期。
+- **Categories**: travel, home, adventure, career, family, other. / カテゴリー：旅行、おうち、冒険、しごと、家族、その他。
+- **EN / 日本語 toggle** — auto-detects browser language. / EN / 日本語切替（ブラウザの言語を自動判定）。
+- **🌸 Sakura petals** drifting down the page, in a 90s shoujo manga aesthetic. / 90年代少女漫画風のデザインに、画面いっぱいに舞う桜の花びら。
+- **Browser back/forward** — proper navigation between setup, app, QR screen. / ブラウザの戻る・進むボタンに対応。
 
-## Tech
+## 🏗 Tech / 技術構成
 
-Pure static site, no build step. Firebase is loaded via CDN as ES modules.
+Pure static site (HTML / CSS / JS) deployed on GitHub Pages. No build step.
 
 | File | Purpose |
 |---|---|
-| `index.html` | Page structure (loading / auth / couple setup / app / modal) |
-| `style.css` | Mobile-first responsive styling |
-| `app.js` | Auth state, couple logic, dreams CRUD with real-time sync (ES module) |
-| `firebase.js` | Firebase initialization and SDK re-exports (ES module) |
-| `i18n.js` | English + Japanese translations and language switching |
-| `firestore.rules` | Firestore security rules (paste into Firebase Console) |
+| `index.html` | Page structure (setup / app / QR / modal) |
+| `style.css` | Mobile-first responsive styling, sakura animation |
+| `app.js` | App logic, navigation, Firestore + Pollinations integration |
+| `firebase.js` | Firebase init + anonymous auth |
+| `i18n.js` | EN / 日本語 translations |
+| `firestore.rules` | Firestore security rules |
 
-### Data model
+### Data model / データモデル
 
 ```
-users/{uid}              → { email, coupleId, displayName }
-couples/{coupleId}       → { members: [uid1, uid2], inviteCode, names: { uid: name } }
-couples/{coupleId}/dreams/{dreamId}
-                         → { title, details, category, owner, createdBy, createdAt }
+couples/{8-char ID}              → { members: [name1, name2], createdAt }
+couples/{ID}/dreams/{dreamId}    → { title, details, category, owner, imageUrl, createdAt }
 ```
 
-`owner` is either a member uid (mine/theirs) or the string `"shared"`.
+`owner` is `"p1"`, `"p2"`, or `"shared"`. Couple ID acts as the shared secret.
 
-## Running locally
-
-Firebase Auth needs an `http://` origin (not `file://`), so use a local server:
+## 🏃 Running locally / ローカルで動かす
 
 ```bash
 python3 -m http.server 8000
 # then visit http://localhost:8000
 ```
 
-`localhost` is already an authorized domain in Firebase by default.
+Firebase Anonymous Auth needs an `http://` origin (not `file://`), so use the server.
 
-## Deploying
+## 🚀 Deploying / デプロイ
 
 Hosted free on **GitHub Pages**. Every push to `main` auto-deploys within ~1 minute.
 
-The GitHub Pages domain (`alexberns.github.io`) must be added to Firebase Console → Authentication → Settings → Authorized domains.
+## 🔥 Firebase setup / Firebaseの初期設定
 
-## Firebase setup checklist
-
-If setting this up on a fresh Firebase project:
-
-1. Create project at https://console.firebase.google.com
+1. Create project at https://console.firebase.google.com (or use existing `wedream-43204`)
 2. Build → **Firestore Database** → Create (production mode, `asia-northeast1`)
-3. Build → **Authentication** → Get started → Email/Password → Enable
-4. Authentication → Settings → Authorized domains → add your GitHub Pages domain
-5. Project overview → register a Web app → copy the `firebaseConfig` into `firebase.js`
-6. Firestore → Rules → paste `firestore.rules` content → Publish
+3. Build → **Authentication** → Get started → **Anonymous** → Enable
+4. Authentication → Settings → Authorized domains → add `alexberns.github.io`
+5. Firestore → Rules → paste contents of `firestore.rules` → Publish
+6. Project Overview → register a Web app → copy the `firebaseConfig` into `firebase.js`
 
-## Progress
+## ⚠️ Prototype notes / プロトタイプの注意点
 
-**Done**
-- [x] Initial draft of the webapp structure (HTML / CSS / JS)
-- [x] Add / edit / delete dreams with categories and ownership
-- [x] Tab filtering (All / Mine / Theirs / Shared)
-- [x] Mobile + desktop responsive layout
-- [x] Renamed `OurDreams` → `weDream`
-- [x] Bilingual EN / 日本語 with live switching
-- [x] Pushed to GitHub and hosted on GitHub Pages
-- [x] **Firebase backend** — Auth (email/password) + Firestore + real-time sync
-- [x] **Couple pairing** via invite code
-- [x] **Firestore security rules** so only paired partners can read each other's data
+- Image generation uses **Pollinations.ai** (free, anonymous, no key). Generation can take 5–30 seconds — the dream card shows a shimmer placeholder while waiting.
+- Firestore rules are intentionally permissive: any authenticated user can read/write any couple if they know the couple ID. The couple ID is the shared secret. Fine for prototype, tighten before going public.
+- Images stored as base64 in Firestore docs (~200–500 KB each). Free tier handles many dozens of dreams per couple; for thousands, move to Firebase Storage.
 
-**Next up**
-- [ ] Image generation for each dream via Gemini API (free tier) — likely as a Cloud Function so the API key stays server-side
-- [ ] Photo uploads (Firebase Storage)
-- [ ] Reactions / comments on each other's dreams
-- [ ] Password reset flow
-- [ ] PWA install (add to home screen)
-- [ ] Account deletion + data export
+## 🛤 Progress / 進捗
+
+**Done / 完了**
+- [x] Setup screen with sakura petals and 4 seeded example dreams / 桜の花びらと4つの例示夢が表示されるセットアップ画面
+- [x] Pair via 8-char couple ID + QR code (no email needed) / 8文字のIDとQRコードでペアリング（メール不要）
+- [x] Firebase Firestore real-time sync between partners / Firebaseでパートナーとリアルタイム同期
+- [x] AI image generation via Pollinations.ai (anime style) / Pollinations.aiでアニメ風の画像をAI生成
+- [x] EN / 日本語 with auto-detection and live switching / 日英切替（自動検出・即時反映）
+- [x] Browser back/forward navigation + URL hash routing / ブラウザの戻る・進むボタン対応
+- [x] Regenerate (↻) button on each dream card / 各夢カードに再生成ボタン
+
+**Next / 次のステップ**
+- [ ] Reactions / comments on each other's dreams / 夢へのリアクション・コメント
+- [ ] Photo uploads (Firebase Storage) / 写真アップロード
+- [ ] NFC tag deep-link option (Android) / NFCタグ対応（Android）
+- [ ] PWA install (add to home screen) / PWA化（ホーム画面に追加）
+- [ ] Tighter Firestore security rules before going public / 公開前にセキュリティルールを厳格化
