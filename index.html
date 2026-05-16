@@ -14,16 +14,8 @@
 <!-- Falling sakura petals -->
 <div id="sakura-container" aria-hidden="true"></div>
 
-<!-- Loading -->
-<div id="loading-screen" class="screen loading">
-    <div class="loading-content">
-        <h1>weDream<span class="heart">♥</span></h1>
-        <div class="spinner"></div>
-    </div>
-</div>
-
-<!-- Auth -->
-<div id="auth-screen" class="screen hidden">
+<!-- Setup screen -->
+<div id="setup-screen" class="screen">
     <div class="card centered-card">
         <div class="lang-switcher centered">
             <button data-lang="en" class="lang-btn">EN</button>
@@ -32,21 +24,12 @@
         <h1>weDream<span class="heart">♥</span></h1>
         <p class="tagline" data-i18n="tagline"></p>
 
-        <div class="pill-tabs">
-            <button class="pill-tab active" data-auth-mode="signin" data-i18n="auth_signin_tab"></button>
-            <button class="pill-tab" data-auth-mode="signup" data-i18n="auth_signup_tab"></button>
-        </div>
-
         <label>
-            <span data-i18n="auth_email"></span>
-            <input type="email" id="auth-email" autocomplete="email">
+            <span data-i18n="setup_your_name"></span>
+            <input type="text" id="setup-me" maxlength="20" autocomplete="off">
         </label>
-        <label>
-            <span data-i18n="auth_password"></span>
-            <input type="password" id="auth-password" autocomplete="current-password">
-        </label>
-        <p id="auth-error" class="form-error"></p>
-        <button id="auth-submit" class="btn-primary full-width"></button>
+        <p id="setup-error" class="form-error"></p>
+        <button id="setup-start" class="btn-primary full-width" data-i18n="setup_start_btn"></button>
     </div>
 
     <section class="sample-dreams-section">
@@ -55,73 +38,19 @@
     </section>
 </div>
 
-<!-- Couple setup -->
-<div id="couple-screen" class="screen hidden">
-    <div class="card centered-card">
-        <div class="card-top-row">
-            <div class="lang-switcher">
-                <button data-lang="en" class="lang-btn">EN</button>
-                <button data-lang="ja" class="lang-btn">日本語</button>
-            </div>
-            <button id="couple-signout" class="link-btn" data-i18n="signout"></button>
-        </div>
-        <h1 data-i18n="couple_setup_title"></h1>
-
-        <div class="pill-tabs">
-            <button class="pill-tab active" data-couple-mode="create" data-i18n="couple_tab_create"></button>
-            <button class="pill-tab" data-couple-mode="join" data-i18n="couple_tab_join"></button>
-        </div>
-
-        <div id="couple-create-pane" class="couple-pane">
-            <p class="muted" data-i18n="couple_create_desc"></p>
-            <div id="couple-create-form">
-                <label>
-                    <span data-i18n="couple_your_name"></span>
-                    <input type="text" id="couple-create-name" maxlength="20">
-                </label>
-                <p id="couple-create-error" class="form-error"></p>
-                <button id="couple-create-btn" class="btn-primary full-width" data-i18n="couple_create_btn"></button>
-            </div>
-            <div id="couple-invite-display" class="invite-display hidden">
-                <p data-i18n="couple_share_code"></p>
-                <div id="invite-code" class="invite-code"></div>
-                <button id="copy-code-btn" class="btn-secondary" data-i18n="copy_code"></button>
-                <div class="waiting-row">
-                    <div class="spinner small"></div>
-                    <p class="muted" data-i18n="couple_waiting"></p>
-                </div>
-            </div>
-        </div>
-
-        <div id="couple-join-pane" class="couple-pane hidden">
-            <p class="muted" data-i18n="couple_join_desc"></p>
-            <label>
-                <span data-i18n="couple_invite_code"></span>
-                <input type="text" id="couple-join-code" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false">
-            </label>
-            <label>
-                <span data-i18n="couple_your_name"></span>
-                <input type="text" id="couple-join-name" maxlength="20">
-            </label>
-            <p id="couple-join-error" class="form-error"></p>
-            <button id="couple-join-btn" class="btn-primary full-width" data-i18n="couple_join_btn"></button>
-        </div>
-    </div>
-</div>
-
 <!-- Main app -->
 <div id="app-screen" class="screen hidden">
     <header class="app-header">
         <div class="header-text">
             <h1>weDream<span class="heart">♥</span></h1>
-            <p class="subtitle"><span id="name-me"></span> &amp; <span id="name-partner"></span></p>
+            <p class="subtitle"><span id="name-me"></span> <span class="heart">♡</span></p>
         </div>
         <div class="header-actions">
             <div class="lang-switcher">
                 <button data-lang="en" class="lang-btn">EN</button>
                 <button data-lang="ja" class="lang-btn">日本語</button>
             </div>
-            <button id="signout-btn" class="icon-btn" aria-label="Sign out" title="Sign out">⎋</button>
+            <button id="settings-btn" class="icon-btn" aria-label="Settings" title="Settings">⚙</button>
         </div>
     </header>
 
@@ -155,7 +84,11 @@
         </label>
         <label>
             <span data-i18n="field_owner"></span>
-            <select id="dream-owner"></select>
+            <select id="dream-owner">
+                <option value="me" data-i18n="owner_mine"></option>
+                <option value="partner" data-i18n="owner_theirs"></option>
+                <option value="shared" data-i18n="owner_shared"></option>
+            </select>
         </label>
         <div class="modal-actions">
             <button id="modal-cancel" class="btn-secondary" data-i18n="cancel"></button>
@@ -165,7 +98,7 @@
 </div>
 
 <script src="i18n.js"></script>
-<script type="module" src="app.js"></script>
+<script src="app.js"></script>
 
 </body>
 </html>

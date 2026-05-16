@@ -92,7 +92,7 @@ h1 {
 .loading-content { text-align: center; }
 .loading-content h1 { font-size: 32px; margin-bottom: 20px; }
 
-#auth-screen, #couple-screen {
+#setup-screen {
     display: flex;
     flex-direction: column;
     align-items: center;

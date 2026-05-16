@@ -3,43 +3,11 @@ const TRANSLATIONS = {
         app_title: 'weDream',
         tagline: 'A little place for the two of you ♡',
 
-        // Auth
-        auth_signin_tab: 'Sign in',
-        auth_signup_tab: 'Sign up',
-        auth_email: 'Email',
-        auth_email_ph: 'you@example.com',
-        auth_password: 'Password',
-        auth_password_ph: 'At least 6 characters',
-        auth_signin_btn: 'Sign in',
-        auth_signup_btn: 'Create account',
-        auth_err_invalid: 'Invalid email or password.',
-        auth_err_in_use: 'Email already in use.',
-        auth_err_weak: 'Password must be at least 6 characters.',
-        auth_err_required: 'Please enter email and password.',
-        auth_err_generic: 'Something went wrong. Please try again.',
-        signout: 'Sign out',
-
-        // Couple setup
-        couple_setup_title: 'Set up your space',
-        couple_tab_create: 'Create new',
-        couple_tab_join: 'Join partner',
-        couple_create_desc: 'Make an invite code to share with your partner.',
-        couple_join_desc: 'Enter the code your partner shared with you.',
-        couple_your_name: 'Your name',
-        couple_your_name_ph: 'e.g. Alex',
-        couple_invite_code: 'Invite code',
-        couple_invite_code_ph: 'ABC123',
-        couple_create_btn: 'Create',
-        couple_join_btn: 'Join',
-        couple_share_code: 'Share this code with your partner:',
-        copy_code: 'Copy',
-        copied: 'Copied!',
-        couple_waiting: 'Waiting for your partner to join…',
-        couple_err_required: 'Please fill in all fields.',
-        couple_err_name_required: 'Please enter your name.',
-        couple_err_invalid_code: 'Invite code not found.',
-        couple_err_full: 'This space is already full (2 members).',
-        couple_err_generic: 'Something went wrong. Please try again.',
+        // Setup
+        setup_your_name: 'Your name',
+        setup_start_btn: 'Enter your space',
+        setup_err_required: 'Please enter your name.',
+        confirm_reset: 'Change your name? Your dreams will be kept.',
 
         // App
         tab_all: 'All',
@@ -67,7 +35,6 @@ const TRANSLATIONS = {
         edit: 'Edit',
         delete: 'Delete',
         confirm_delete: 'Delete this dream?',
-        confirm_signout: 'Sign out?',
 
         // Categories
         cat_travel: '✈ Travel',
@@ -77,7 +44,7 @@ const TRANSLATIONS = {
         cat_family: '👨‍👩‍👧 Family',
         cat_other: '✨ Other',
 
-        // Sample dreams (shown on the auth screen as examples)
+        // Sample dreams (welcome screen)
         sample_dreams_title: '✨ Some little dreams ✨',
         sample_ex1_title: 'Visit Kyoto in spring',
         sample_ex1_details: 'Walk under the cherry blossoms together.',
@@ -92,43 +59,11 @@ const TRANSLATIONS = {
         app_title: 'weDream',
         tagline: 'ふたりだけの、夢のおきば ♡',
 
-        // Auth
-        auth_signin_tab: 'ログイン',
-        auth_signup_tab: '新規登録',
-        auth_email: 'メールアドレス',
-        auth_email_ph: 'you@example.com',
-        auth_password: 'パスワード',
-        auth_password_ph: '6文字以上',
-        auth_signin_btn: 'ログイン',
-        auth_signup_btn: 'アカウントを作成',
-        auth_err_invalid: 'メールアドレスまたはパスワードが違います。',
-        auth_err_in_use: 'このメールアドレスはすでに使われています。',
-        auth_err_weak: 'パスワードは6文字以上にしてください。',
-        auth_err_required: 'メールアドレスとパスワードを入力してください。',
-        auth_err_generic: 'エラーが発生しました。もう一度お試しください。',
-        signout: 'ログアウト',
-
-        // Couple setup
-        couple_setup_title: 'ふたりの空間を作る',
-        couple_tab_create: '新しく作る',
-        couple_tab_join: 'パートナーと合流',
-        couple_create_desc: '招待コードを作ってパートナーに共有しましょう。',
-        couple_join_desc: 'パートナーから受け取った招待コードを入力してください。',
-        couple_your_name: 'あなたの名前',
-        couple_your_name_ph: '例：あきら',
-        couple_invite_code: '招待コード',
-        couple_invite_code_ph: 'ABC123',
-        couple_create_btn: '作成',
-        couple_join_btn: '合流',
-        couple_share_code: 'このコードをパートナーに送りましょう：',
-        copy_code: 'コピー',
-        copied: 'コピーしました！',
-        couple_waiting: 'パートナーの参加を待っています…',
-        couple_err_required: 'すべての項目を入力してください。',
-        couple_err_name_required: 'お名前を入力してください。',
-        couple_err_invalid_code: '招待コードが見つかりません。',
-        couple_err_full: 'この空間はすでに2人埋まっています。',
-        couple_err_generic: 'エラーが発生しました。もう一度お試しください。',
+        // Setup
+        setup_your_name: 'あなたの名前',
+        setup_start_btn: '空間に入る',
+        setup_err_required: 'お名前を入力してください。',
+        confirm_reset: '名前を変更しますか？夢はそのまま残ります。',
 
         // App
         tab_all: 'すべて',
@@ -156,7 +91,6 @@ const TRANSLATIONS = {
         edit: '編集',
         delete: '削除',
         confirm_delete: 'この夢を削除しますか？',
-        confirm_signout: 'ログアウトしますか？',
 
         // Categories
         cat_travel: '✈ 旅行',
@@ -218,11 +152,6 @@ function applyTranslations() {
         el.textContent = t(key);
     });
 
-    setPlaceholder('auth-email', 'auth_email_ph');
-    setPlaceholder('auth-password', 'auth_password_ph');
-    setPlaceholder('couple-create-name', 'couple_your_name_ph');
-    setPlaceholder('couple-join-name', 'couple_your_name_ph');
-    setPlaceholder('couple-join-code', 'couple_invite_code_ph');
     setPlaceholder('dream-title', 'field_title_ph');
     setPlaceholder('dream-details', 'field_details_ph');
 
