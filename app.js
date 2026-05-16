@@ -70,24 +70,26 @@ function shareUrl() {
 // ---------- Gemini ----------
 function buildPrompt(title, details, category) {
     const themeHint = {
-        travel: 'travel and faraway places',
-        home: 'cozy domestic scene',
-        adventure: 'outdoor adventure',
-        career: 'work and craft',
+        travel: 'travel destination, scenery',
+        home: 'cozy home interior',
+        adventure: 'outdoor adventure scene',
+        career: 'workplace or craft scene',
         family: 'warm family moment',
         other: 'whimsical scene',
-    }[category] || '';
-    return (
-        'A dreamy, soft pastel anime illustration in 90s shoujo manga style. '
-        + `Subject: ${title}. `
-        + (details ? `Details: ${details}. ` : '')
-        + (themeHint ? `Theme: ${themeHint}. ` : '')
-        + 'Aesthetic: cherry blossom palette, watercolor textures, ethereal lighting, romantic, '
-        + 'shoujo manga style, soft glow, no text or words anywhere in the image.'
-    );
+    }[category] || 'romantic scene';
+
+    let prompt = `Create a dreamy, soft pastel anime illustration in 90s shoujo manga style depicting the following scene:\n\n`;
+    prompt += `MAIN SUBJECT: ${title}\n`;
+    if (details && details.trim()) {
+        prompt += `EXTRA DETAIL: ${details}\n`;
+    }
+    prompt += `CATEGORY: ${themeHint}\n\n`;
+    prompt += `Visual style: cherry blossom palette (soft pinks, lavender, cream), watercolor textures, ethereal lighting, soft glow, romantic atmosphere, 90s shoujo anime aesthetic. The image should clearly visualize the MAIN SUBJECT above. Do NOT include any text, letters, words, or written characters anywhere in the image.`;
+    return prompt;
 }
 
 async function callGeminiImage(prompt) {
+    console.log('[Gemini] Sending prompt:\n', prompt);
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
     const res = await fetch(url, {
         method: 'POST',
@@ -99,12 +101,18 @@ async function callGeminiImage(prompt) {
     });
     if (!res.ok) {
         const body = await res.text();
-        throw new Error(`API ${res.status}: ${body.slice(0, 240)}`);
+        console.error('[Gemini] HTTP error', res.status, body);
+        throw new Error(`Gemini ${res.status}: ${body.slice(0, 240)}`);
     }
     const data = await res.json();
     const parts = (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
     const imagePart = parts.find(p => p.inlineData && p.inlineData.data);
-    if (!imagePart) throw new Error('No image returned from Gemini');
+    if (!imagePart) {
+        console.error('[Gemini] No image in response. Full response:', data);
+        const finishReason = data?.candidates?.[0]?.finishReason;
+        throw new Error(`Gemini returned no image (finishReason: ${finishReason || 'unknown'})`);
+    }
+    console.log('[Gemini] ✓ Image received');
     const mime = imagePart.inlineData.mimeType || 'image/png';
     return `data:${mime};base64,${imagePart.inlineData.data}`;
 }
@@ -117,14 +125,33 @@ async function generateImageFor(dreamId, dreamSnapshot) {
         const prompt = buildPrompt(dream.title, dream.details || '', dream.category);
         const dataUrl = await callGeminiImage(prompt);
         await updateDoc(dreamRef, { imageUrl: dataUrl, imageStatus: 'done' });
+        console.log('[Gemini] ✓ Image saved for "' + dream.title + '"');
     } catch (e) {
-        console.error('Gemini image generation failed:', e);
+        console.error('[Gemini] Failed for "' + dream.title + '":', e.message);
+        showToast(t('image_gen_failed') + ': ' + (e.message || 'unknown'));
+        // Picsum fallback so user still sees something
         const seed = encodeURIComponent((dream.title || 'dream') + '-' + dream.category);
         await updateDoc(dreamRef, {
             imageUrl: `https://picsum.photos/seed/${seed}/800/500`,
             imageStatus: 'fallback',
         });
     }
+}
+
+function showToast(message) {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.className = 'toast';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(showToast._timeout);
+    showToast._timeout = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 6000);
 }
 
 // ---------- Couple management ----------
