@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#e75480">
+    <title>weDream</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="setup" class="setup-screen">
+        <div class="setup-card">
+            <div class="lang-switcher" id="lang-switcher-setup">
+                <button data-lang="en" class="lang-btn">EN</button>
+                <button data-lang="ja" class="lang-btn">日本語</button>
+            </div>
+            <h1>weDream<span class="heart">♥</span></h1>
+            <p class="tagline" data-i18n="tagline"></p>
+            <label>
+                <span data-i18n="your_name"></span>
+                <input type="text" id="setup-me" maxlength="20">
+            </label>
+            <label>
+                <span data-i18n="partner_name"></span>
+                <input type="text" id="setup-partner" maxlength="20">
+            </label>
+            <button id="setup-start" data-i18n="start_button"></button>
+        </div>
+    </div>
+
+    <div id="app" class="app hidden">
+        <header class="app-header">
+            <div class="header-text">
+                <h1>weDream<span class="heart">♥</span></h1>
+                <p class="subtitle"><span id="name-me"></span> &amp; <span id="name-partner"></span></p>
+            </div>
+            <div class="header-actions">
+                <div class="lang-switcher" id="lang-switcher-app">
+                    <button data-lang="en" class="lang-btn">EN</button>
+                    <button data-lang="ja" class="lang-btn">日本語</button>
+                </div>
+                <button id="settings-btn" class="icon-btn" aria-label="Settings">⚙</button>
+            </div>
+        </header>
+
+        <nav class="tabs" role="tablist">
+            <button class="tab active" data-tab="all" role="tab" data-i18n="tab_all"></button>
+            <button class="tab" data-tab="mine" role="tab" data-i18n="tab_mine"></button>
+            <button class="tab" data-tab="theirs" role="tab" data-i18n="tab_theirs"></button>
+            <button class="tab" data-tab="shared" role="tab" data-i18n="tab_shared"></button>
+        </nav>
+
+        <main id="dreams-list" class="dreams-list"></main>
+
+        <button id="add-btn" class="fab" aria-label="Add dream">+</button>
+    </div>
+
+    <div id="dream-modal" class="modal hidden">
+        <div class="modal-card">
+            <h2 id="modal-title"></h2>
+            <label>
+                <span data-i18n="field_title"></span>
+                <input type="text" id="dream-title" maxlength="80">
+            </label>
+            <label>
+                <span data-i18n="field_details"></span>
+                <textarea id="dream-details" maxlength="500"></textarea>
+            </label>
+            <label>
+                <span data-i18n="field_category"></span>
+                <select id="dream-category"></select>
+            </label>
+            <label>
+                <span data-i18n="field_owner"></span>
+                <select id="dream-owner">
+                    <option value="me" data-i18n="owner_mine"></option>
+                    <option value="partner" data-i18n="owner_theirs"></option>
+                    <option value="shared" data-i18n="owner_shared"></option>
+                </select>
+            </label>
+            <div class="modal-actions">
+                <button id="modal-cancel" class="btn-secondary" data-i18n="cancel"></button>
+                <button id="modal-save" class="btn-primary" data-i18n="save"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="i18n.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
