@@ -11,10 +11,9 @@
 </head>
 <body>
 
-<!-- Falling sakura petals -->
 <div id="sakura-container" aria-hidden="true"></div>
 
-<!-- Setup screen -->
+<!-- Setup -->
 <div id="setup-screen" class="screen">
     <div class="card centered-card">
         <div class="lang-switcher centered">
@@ -22,7 +21,7 @@
             <button data-lang="ja" class="lang-btn">日本語</button>
         </div>
         <h1>weDream<span class="heart">♥</span></h1>
-        <p class="tagline" data-i18n="tagline"></p>
+        <p id="setup-subtitle" class="tagline" data-i18n="tagline"></p>
 
         <label>
             <span data-i18n="setup_your_name"></span>
@@ -43,13 +42,14 @@
     <header class="app-header">
         <div class="header-text">
             <h1>weDream<span class="heart">♥</span></h1>
-            <p class="subtitle"><span id="name-me"></span> <span class="heart">♡</span></p>
+            <p class="subtitle"><span id="name-me"></span><span id="name-partner"></span> <span class="heart">♡</span></p>
         </div>
         <div class="header-actions">
             <div class="lang-switcher">
                 <button data-lang="en" class="lang-btn">EN</button>
                 <button data-lang="ja" class="lang-btn">日本語</button>
             </div>
+            <button id="share-btn" class="icon-btn" aria-label="Share" title="Share / QR">⌗</button>
             <button id="settings-btn" class="icon-btn" aria-label="Settings" title="Settings">⚙</button>
         </div>
     </header>
@@ -64,6 +64,21 @@
     <main id="dreams-list" class="dreams-list"></main>
 
     <button id="add-btn" class="fab" aria-label="Add dream">+</button>
+</div>
+
+<!-- QR / share screen -->
+<div id="qr-screen" class="screen hidden">
+    <div class="card centered-card">
+        <button id="qr-back" class="link-btn top-left">← <span data-i18n="qr_back"></span></button>
+        <h1 data-i18n="qr_title"></h1>
+        <p class="muted" data-i18n="qr_desc"></p>
+        <div id="qr-code" class="qr-container"></div>
+        <p class="couple-id-label" data-i18n="couple_id_label"></p>
+        <div id="qr-couple-id" class="invite-code"></div>
+        <p class="muted small-muted" data-i18n="or_share_link"></p>
+        <div id="share-url" class="share-url"></div>
+        <button id="copy-url-btn" class="btn-secondary" data-i18n="copy_link"></button>
+    </div>
 </div>
 
 <!-- Dream modal -->
@@ -84,11 +99,7 @@
         </label>
         <label>
             <span data-i18n="field_owner"></span>
-            <select id="dream-owner">
-                <option value="me" data-i18n="owner_mine"></option>
-                <option value="partner" data-i18n="owner_theirs"></option>
-                <option value="shared" data-i18n="owner_shared"></option>
-            </select>
+            <select id="dream-owner"></select>
         </label>
         <div class="modal-actions">
             <button id="modal-cancel" class="btn-secondary" data-i18n="cancel"></button>

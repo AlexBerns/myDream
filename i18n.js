@@ -6,8 +6,12 @@ const TRANSLATIONS = {
         // Setup
         setup_your_name: 'Your name',
         setup_start_btn: 'Enter your space',
+        setup_join_btn: 'Join',
         setup_err_required: 'Please enter your name.',
+        joining_space: "Joining {name}'s space ♥",
         confirm_reset: 'Change your name? Your dreams will be kept.',
+        couple_err_invalid_code: "That space doesn't exist.",
+        couple_err_generic: 'Something went wrong. Try again.',
 
         // App
         tab_all: 'All',
@@ -16,6 +20,15 @@ const TRANSLATIONS = {
         tab_shared: 'Shared',
         empty_all: 'No dreams yet — tap + to add the first one.',
         empty_filtered: 'Nothing here yet — try another tab or add a dream.',
+
+        // QR
+        qr_title: 'Invite your partner ♥',
+        qr_desc: 'Show this QR code to your partner, or share the link below.',
+        qr_back: 'Back',
+        couple_id_label: 'Your space ID',
+        or_share_link: 'or share this link:',
+        copy_link: 'Copy link',
+        copy_link_done: 'Copied! ♡',
 
         // Dream modal
         new_dream: 'New dream',
@@ -29,7 +42,6 @@ const TRANSLATIONS = {
         owner_mine: 'Mine',
         owner_theirs: 'Theirs',
         owner_shared: 'Shared',
-        shared_label: '{me} & {partner}',
         cancel: 'Cancel',
         save: 'Save',
         edit: 'Edit',
@@ -45,7 +57,7 @@ const TRANSLATIONS = {
         cat_family: '👨‍👩‍👧 Family',
         cat_other: '✨ Other',
 
-        // Sample dreams (welcome screen)
+        // Sample dreams
         sample_dreams_title: '✨ Some little dreams ✨',
         sample_ex1_title: 'Visit Kyoto in spring',
         sample_ex1_details: 'Walk under the cherry blossoms together.',
@@ -63,8 +75,12 @@ const TRANSLATIONS = {
         // Setup
         setup_your_name: 'あなたの名前',
         setup_start_btn: '空間に入る',
+        setup_join_btn: '合流する',
         setup_err_required: 'お名前を入力してください。',
+        joining_space: '{name}さんの空間に参加 ♥',
         confirm_reset: '名前を変更しますか？夢はそのまま残ります。',
+        couple_err_invalid_code: 'その空間は見つかりませんでした。',
+        couple_err_generic: 'エラーが発生しました。もう一度お試しください。',
 
         // App
         tab_all: 'すべて',
@@ -73,6 +89,15 @@ const TRANSLATIONS = {
         tab_shared: 'ふたりの',
         empty_all: 'まだ夢はありません。＋ボタンで追加しましょう。',
         empty_filtered: 'ここにはまだ何もありません。',
+
+        // QR
+        qr_title: 'パートナーを招待 ♥',
+        qr_desc: 'このQRコードをパートナーに見せるか、下のリンクを送ってください。',
+        qr_back: '戻る',
+        couple_id_label: 'ふたりの空間ID',
+        or_share_link: 'またはこのリンク：',
+        copy_link: 'リンクをコピー',
+        copy_link_done: 'コピーしました ♡',
 
         // Dream modal
         new_dream: '新しい夢',
@@ -86,7 +111,6 @@ const TRANSLATIONS = {
         owner_mine: 'わたしの',
         owner_theirs: '相手の',
         owner_shared: 'ふたりの',
-        shared_label: '{me}と{partner}',
         cancel: 'キャンセル',
         save: '保存',
         edit: '編集',
@@ -153,10 +177,8 @@ function applyTranslations() {
         const key = el.dataset.i18n;
         el.textContent = t(key);
     });
-
     setPlaceholder('dream-title', 'field_title_ph');
     setPlaceholder('dream-details', 'field_details_ph');
-
     document.querySelectorAll('.lang-switcher').forEach(sw => {
         sw.querySelectorAll('.lang-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.lang === currentLang);
