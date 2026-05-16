@@ -7,6 +7,13 @@ import {
 
 const CATEGORIES = ['travel', 'home', 'adventure', 'career', 'family', 'other'];
 
+const SAMPLE_DREAMS = [
+    { titleKey: 'sample_ex1_title', detailsKey: 'sample_ex1_details', category: 'travel', ownerType: 'shared' },
+    { titleKey: 'sample_ex2_title', detailsKey: 'sample_ex2_details', category: 'home', ownerType: 'me' },
+    { titleKey: 'sample_ex3_title', detailsKey: 'sample_ex3_details', category: 'adventure', ownerType: 'partner' },
+    { titleKey: 'sample_ex4_title', detailsKey: 'sample_ex4_details', category: 'career', ownerType: 'shared' },
+];
+
 const state = {
     user: null,
     userDoc: null,
@@ -45,6 +52,50 @@ function generateInviteCode() {
         code += chars[Math.floor(Math.random() * chars.length)];
     }
     return code;
+}
+
+// ---------- Sakura petals ----------
+function spawnSakura(count = 24) {
+    const container = $('sakura-container');
+    if (!container) return;
+    container.innerHTML = '';
+    const petalChars = ['🌸', '🌸', '🌸', '✿', '❀'];
+    for (let i = 0; i < count; i++) {
+        const petal = document.createElement('div');
+        petal.className = 'sakura-petal';
+        petal.textContent = petalChars[Math.floor(Math.random() * petalChars.length)];
+        petal.style.left = (Math.random() * 100) + '%';
+        petal.style.fontSize = (12 + Math.random() * 16) + 'px';
+        petal.style.setProperty('--drift', ((Math.random() - 0.5) * 300) + 'px');
+        const duration = 9 + Math.random() * 9;
+        petal.style.animationDuration = duration + 's';
+        petal.style.animationDelay = (Math.random() * duration * -1) + 's';
+        container.appendChild(petal);
+    }
+}
+
+// ---------- Sample dreams ----------
+function renderSamples() {
+    const container = $('sample-dreams');
+    if (!container) return;
+    container.innerHTML = SAMPLE_DREAMS.map(d => {
+        const ownerText = d.ownerType === 'me' ? t('owner_mine')
+                        : d.ownerType === 'partner' ? t('owner_theirs')
+                        : t('owner_shared');
+        const ownerCls = d.ownerType === 'me' ? 'owner-me'
+                      : d.ownerType === 'partner' ? 'owner-partner'
+                      : 'owner-shared';
+        return `
+            <article class="dream-card sample ${ownerCls}">
+                <div class="dream-meta">
+                    <span class="dream-tag">${escapeHtml(t('cat_' + d.category))}</span>
+                    <span>${escapeHtml(ownerText)}</span>
+                </div>
+                <h3 class="dream-title">${escapeHtml(t(d.titleKey))}</h3>
+                <p class="dream-details">${escapeHtml(t(d.detailsKey))}</p>
+            </article>
+        `;
+    }).join('');
 }
 
 // ---------- Auth ----------
@@ -388,7 +439,7 @@ async function deleteDream(id) {
     }
 }
 
-// ---------- Auth state change ----------
+// ---------- Auth state ----------
 onAuthStateChanged(auth, async (user) => {
     cleanup();
     if (!user) {
@@ -418,6 +469,7 @@ onAuthStateChanged(auth, async (user) => {
 
 // ---------- i18n hook ----------
 window.onLangChange = function () {
+    renderSamples();
     setAuthMode(state.authMode);
     if (state.user && state.couple) {
         populateCategorySelect();
@@ -427,13 +479,12 @@ window.onLangChange = function () {
     }
 };
 
-// ---------- Event listeners ----------
+// ---------- Listeners ----------
 function attachListeners() {
     document.querySelectorAll('.lang-switcher .lang-btn').forEach(btn => {
         btn.addEventListener('click', () => setLang(btn.dataset.lang));
     });
 
-    // Auth
     document.querySelectorAll('.pill-tab[data-auth-mode]').forEach(tab => {
         tab.addEventListener('click', () => setAuthMode(tab.dataset.authMode));
     });
@@ -442,7 +493,6 @@ function attachListeners() {
         if (e.key === 'Enter') handleAuthSubmit();
     });
 
-    // Couple
     document.querySelectorAll('.pill-tab[data-couple-mode]').forEach(tab => {
         tab.addEventListener('click', () => setCoupleMode(tab.dataset.coupleMode));
     });
@@ -462,7 +512,6 @@ function attachListeners() {
         }
     });
 
-    // App
     $('add-btn').addEventListener('click', () => openModal());
     $('signout-btn').addEventListener('click', handleSignOut);
     $('modal-cancel').addEventListener('click', closeModal);
@@ -495,4 +544,6 @@ function attachListeners() {
 
 applyTranslations();
 setAuthMode('signin');
+renderSamples();
+spawnSakura();
 attachListeners();
